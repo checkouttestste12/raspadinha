@@ -3,78 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raspadinha Online</title>
+    <title>Raspadinha Premium - Ganhe Prêmios Incríveis!</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎰 Raspadinha Online 🎰</h1>
-        <div class="game-info">
-            <p>Arraste o mouse ou o dedo para raspar e descobrir os valores!</p>
-            <p>Ganhe alinhando 3 valores iguais na horizontal, vertical ou diagonal!</p>
-        </div>
-        
-        <div class="scratch-card">
-            <div class="grid" id="grid">
-                <div class="block" data-index="0">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-0"></div>
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-gem"></i>
+                <h1>Raspadinha Premium</h1>
+            </div>
+            <div class="balance">
+                <span class="balance-label">Saldo:</span>
+                <span class="balance-amount">R$ <span id="balance">0,00</span></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <div class="game-info">
+                <div class="info-card">
+                    <i class="fas fa-trophy"></i>
+                    <span>Encontre 3 símbolos iguais alinhados para ganhar!</span>
                 </div>
-                <div class="block" data-index="1">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-1"></div>
-                </div>
-                <div class="block" data-index="2">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-2"></div>
-                </div>
-                <div class="block" data-index="3">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-3"></div>
-                </div>
-                <div class="block" data-index="4">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-4"></div>
-                </div>
-                <div class="block" data-index="5">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-5"></div>
-                </div>
-                <div class="block" data-index="6">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-6"></div>
-                </div>
-                <div class="block" data-index="7">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-7"></div>
-                </div>
-                <div class="block" data-index="8">
-                    <canvas class="scratch-canvas"></canvas>
-                    <div class="value" id="value-8"></div>
+                <div class="attempts-counter">
+                    <span>Tentativa: <span id="attempt-number">1</span></span>
                 </div>
             </div>
-        </div>
-        
-        <div class="game-controls">
-            <button id="newGame" class="btn">Nova Raspadinha</button>
-            <div class="game-counter">
-                <span>Raspadas jogadas: <span id="gameCount">0</span></span>
+
+            <div class="scratch-card" id="scratchCard">
+                <div class="card-header">
+                    <h2>Raspe e Ganhe</h2>
+                    <div class="card-number">#<span id="cardNumber">001</span></div>
+                </div>
+                
+                <div class="scratch-area">
+                    <canvas id="scratchCanvas" width="400" height="300"></canvas>
+                    <div class="symbols-grid" id="symbolsGrid">
+                        <div class="symbol-cell" data-row="0" data-col="0">
+                            <span class="symbol" id="symbol-0-0">💎</span>
+                        </div>
+                        <div class="symbol-cell" data-row="0" data-col="1">
+                            <span class="symbol" id="symbol-0-1">🍀</span>
+                        </div>
+                        <div class="symbol-cell" data-row="0" data-col="2">
+                            <span class="symbol" id="symbol-0-2">⭐</span>
+                        </div>
+                        <div class="symbol-cell" data-row="1" data-col="0">
+                            <span class="symbol" id="symbol-1-0">🎯</span>
+                        </div>
+                        <div class="symbol-cell" data-row="1" data-col="1">
+                            <span class="symbol" id="symbol-1-1">💰</span>
+                        </div>
+                        <div class="symbol-cell" data-row="1" data-col="2">
+                            <span class="symbol" id="symbol-1-2">🔥</span>
+                        </div>
+                        <div class="symbol-cell" data-row="2" data-col="0">
+                            <span class="symbol" id="symbol-2-0">⚡</span>
+                        </div>
+                        <div class="symbol-cell" data-row="2" data-col="1">
+                            <span class="symbol" id="symbol-2-1">🎲</span>
+                        </div>
+                        <div class="symbol-cell" data-row="2" data-col="2">
+                            <span class="symbol" id="symbol-2-2">🎊</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scratch-instruction">
+                    <i class="fas fa-hand-pointer"></i>
+                    <span>Clique e arraste para raspar</span>
+                </div>
             </div>
-        </div>
-        
-        <div id="result" class="result"></div>
-        
-        <div class="prize-info">
-            <h3>💰 Prêmios Possíveis:</h3>
-            <ul>
-                <li>3 x R$ 10,00 = R$ 30,00</li>
-                <li>3 x R$ 25,00 = R$ 75,00</li>
-                <li>3 x R$ 50,00 = R$ 150,00</li>
-                <li>3 x R$ 100,00 = R$ 300,00</li>
-            </ul>
-        </div>
+
+            <div class="result-area" id="resultArea" style="display: none;">
+                <div class="result-card">
+                    <div class="result-icon" id="resultIcon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3 id="resultTitle">Parabéns!</h3>
+                    <p id="resultMessage">Você ganhou R$ 150,00!</p>
+                    <div class="winning-line" id="winningLine"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="newGameBtn">
+                    <i class="fas fa-refresh"></i>
+                    Nova Raspadinha
+                </button>
+                <button class="btn btn-secondary" id="resetBtn">
+                    <i class="fas fa-undo"></i>
+                    Reiniciar Jogo
+                </button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="prize-table">
+                <h3>Tabela de Prêmios</h3>
+                <div class="prizes">
+                    <div class="prize-item">
+                        <span class="prize-symbols">💎 💎 💎</span>
+                        <span class="prize-value">R$ 500,00</span>
+                    </div>
+                    <div class="prize-item">
+                        <span class="prize-symbols">🍀 🍀 🍀</span>
+                        <span class="prize-value">R$ 300,00</span>
+                    </div>
+                    <div class="prize-item">
+                        <span class="prize-symbols">⭐ ⭐ ⭐</span>
+                        <span class="prize-value">R$ 200,00</span>
+                    </div>
+                    <div class="prize-item">
+                        <span class="prize-symbols">💰 💰 💰</span>
+                        <span class="prize-value">R$ 150,00</span>
+                    </div>
+                    <div class="prize-item">
+                        <span class="prize-symbols">🎯 🎯 🎯</span>
+                        <span class="prize-value">R$ 100,00</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
