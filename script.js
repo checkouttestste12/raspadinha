@@ -27,8 +27,49 @@ class Raspadinha {
         // Adicionar event listeners para cada bloco
         for (let i = 0; i < 9; i++) {
             const block = document.querySelector(`[data-index="${i}"]`);
-            const cover = block.querySelector('.cover');
-            cover.addEventListener('click', () => this.scratchBlock(i));
+            const canvas = block.querySelector('.scratch-canvas');
+            const ctx = canvas.getContext('2d');
+
+            let isScratching = false;
+
+            const startScratch = (e) => {
+                if (!this.gameActive || this.scratchedBlocks.includes(i)) return;
+                isScratching = true;
+                this.scratch(canvas, ctx, e);
+            };
+
+            const doScratch = (e) => {
+                if (!isScratching) return;
+                this.scratch(canvas, ctx, e);
+            };
+
+            const endScratch = () => {
+                isScratching = false;
+                // Check if enough area is scratched to reveal the value
+                const scratchedPercentage = this.getScratchPercentage(canvas, ctx);
+                if (scratchedPercentage > 50 && !this.scratchedBlocks.includes(i)) { // Only mark as scratched if more than 50% is revealed
+                    this.scratchedBlocks.push(i);
+                    this.checkGameStatus();
+                }
+            };
+
+            // Mouse events
+            canvas.addEventListener('mousedown', startScratch);
+            canvas.addEventListener('mousemove', doScratch);
+            canvas.addEventListener('mouseup', endScratch);
+            canvas.addEventListener('mouseleave', endScratch);
+
+            // Touch events
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent scrolling
+                startScratch(e.touches[0]);
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault(); // Prevent scrolling
+                doScratch(e.touches[0]);
+            });
+            canvas.addEventListener('touchend', endScratch);
+            canvas.addEventListener('touchcancel', endScratch);
         }
     }
     
@@ -134,30 +175,45 @@ class Raspadinha {
     resetBlocks() {
         for (let i = 0; i < 9; i++) {
             const block = document.querySelector(`[data-index="${i}"]`);
-            const cover = block.querySelector('.cover');
+            const canvas = block.querySelector('.scratch-canvas');
+            const ctx = canvas.getContext('2d');
             const value = block.querySelector('.value');
             
-            cover.classList.remove('scratched');
             value.classList.remove('winning');
+            
+            // Redraw the scratchable layer
+            this.drawScratchableLayer(canvas, ctx);
         }
     }
     
-    scratchBlock(index) {
-        if (!this.gameActive || this.scratchedBlocks.includes(index)) {
-            return;
+    drawScratchableLayer(canvas, ctx) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.fillStyle = 'gray'; // Or a pattern/image
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'destination-out'; // This is key for erasing
+    }
+
+    scratch(canvas, ctx, e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    getScratchPercentage(canvas, ctx) {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        let transparentPixels = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+            if (pixels[i + 3] === 0) { // Alpha channel is 0 (fully transparent)
+                transparentPixels++;
+            }
         }
-        
-        const block = document.querySelector(`[data-index="${index}"]`);
-        const cover = block.querySelector('.cover');
-        
-        // Animação de raspagem
-        cover.classList.add('scratched');
-        this.scratchedBlocks.push(index);
-        
-        // Verificar vitória após cada raspagem
-        setTimeout(() => {
-            this.checkGameStatus();
-        }, 300);
+        return (transparentPixels / (canvas.width * canvas.height)) * 100;
     }
     
     checkGameStatus() {
@@ -282,4 +338,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Criar partículas ocasionalmente
     setInterval(createParticle, 2000);
 });
+
 
