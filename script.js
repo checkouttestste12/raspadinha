@@ -1,351 +1,438 @@
-class Raspadinha {
+class ScratchGame {
     constructor() {
-        this.grid = document.getElementById("grid");
-        this.newGameBtn = document.getElementById("newGame");
-        this.resultDiv = document.getElementById("result");
-        this.gameCountSpan = document.getElementById("gameCount");
+        this.canvas = document.getElementById('scratchCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.symbolsGrid = document.getElementById('symbolsGrid');
+        this.resultArea = document.getElementById('resultArea');
+        this.balanceElement = document.getElementById('balance');
+        this.attemptElement = document.getElementById('attempt-number');
+        this.cardNumberElement = document.getElementById('cardNumber');
         
-        this.values = [];
-        this.scratchedBlocks = [];
-        this.gameCount = parseInt(localStorage.getItem("gameCount") || "0");
+        this.isDrawing = false;
+        this.currentAttempt = 1;
+        this.balance = 0;
+        this.cardNumber = 1;
         this.gameActive = true;
+        this.scratchedPercentage = 0;
+        this.minScratchPercentage = 30; // Porcentagem mínima para revelar resultado
         
-        this.prizeValues = [10, 25, 50, 100];
+        // Símbolos disponíveis e seus valores de prêmio
+        this.symbols = ['💎', '🍀', '⭐', '💰', '🎯', '🔥', '⚡', '🎲', '🎊'];
+        this.prizeValues = {
+            '💎': 500,
+            '🍀': 300,
+            '⭐': 200,
+            '💰': 150,
+            '🎯': 100,
+            '🔥': 75,
+            '⚡': 50,
+            '🎲': 25,
+            '🎊': 10
+        };
+        
+        this.currentSymbols = [];
+        this.winningCombination = null;
         
         this.init();
     }
     
     init() {
-        this.updateGameCount();
-        this.setupEventListeners();
-        this.startNewGame();
+        this.setupCanvas();
+        this.generateSymbols();
+        this.bindEvents();
+        this.updateDisplay();
     }
     
-    setupEventListeners() {
-        this.newGameBtn.addEventListener("click", () => this.startNewGame());
+    setupCanvas() {
+        // Configurar o canvas com a camada de raspagem
+        this.ctx.fillStyle = '#c0c0c0';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Adicionar event listeners para cada bloco
-        for (let i = 0; i < 9; i++) {
-            const block = document.querySelector(`[data-index="${i}"]`);
-            const canvas = block.querySelector(".scratch-canvas");
-            const ctx = canvas.getContext("2d");
-
-            let isScratching = false;
-
-            // Set initial canvas size and drawing properties
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            ctx.fillStyle = "gray"; // Or a pattern/image
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.globalCompositeOperation = "destination-out"; // This is key for erasing
-
-            const startScratch = (e) => {
-                if (!this.gameActive || this.scratchedBlocks.includes(i)) return;
-                isScratching = true;
-                this.scratch(canvas, ctx, e);
-            };
-
-            const doScratch = (e) => {
-                if (!isScratching) return;
-                this.scratch(canvas, ctx, e);
-            };
-
-            const endScratch = () => {
-                isScratching = false;
-                // Check if enough area is scratched to reveal the value
-                const scratchedPercentage = this.getScratchPercentage(canvas, ctx);
-                if (scratchedPercentage > 50 && !this.scratchedBlocks.includes(i)) { // Only mark as scratched if more than 50% is revealed
-                    this.scratchedBlocks.push(i);
-                    canvas.style.opacity = "0"; // Make canvas transparent to reveal value
-                    this.checkGameStatus();
-                }
-            };
-
-            // Mouse events
-            canvas.addEventListener("mousedown", startScratch);
-            canvas.addEventListener("mousemove", doScratch);
-            canvas.addEventListener("mouseup", endScratch);
-            canvas.addEventListener("mouseleave", endScratch);
-
-            // Touch events
-            canvas.addEventListener("touchstart", (e) => {
-                e.preventDefault(); // Prevent scrolling
-                startScratch(e.touches[0]);
-            });
-            canvas.addEventListener("touchmove", (e) => {
-                e.preventDefault(); // Prevent scrolling
-                doScratch(e.touches[0]);
-            });
-            canvas.addEventListener("touchend", endScratch);
-            canvas.addEventListener("touchcancel", endScratch);
+        // Adicionar textura de raspagem
+        this.ctx.fillStyle = '#a0a0a0';
+        for (let i = 0; i < 1000; i++) {
+            const x = Math.random() * this.canvas.width;
+            const y = Math.random() * this.canvas.height;
+            this.ctx.fillRect(x, y, 2, 2);
         }
+        
+        // Adicionar texto "RASPE AQUI"
+        this.ctx.fillStyle = '#666';
+        this.ctx.font = 'bold 24px Poppins';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('RASPE AQUI', this.canvas.width / 2, this.canvas.height / 2 - 20);
+        this.ctx.font = '16px Poppins';
+        this.ctx.fillText('Clique e arraste para raspar', this.canvas.width / 2, this.canvas.height / 2 + 10);
+        
+        // Configurar modo de composição para "apagar" ao desenhar
+        this.ctx.globalCompositeOperation = 'destination-out';
     }
     
-    startNewGame() {
-        this.gameActive = true;
-        this.scratchedBlocks = [];
-        this.resultDiv.textContent = "";
-        this.resultDiv.className = "result";
+    generateSymbols() {
+        this.currentSymbols = [];
         
-        // Incrementar contador de jogos
-        this.gameCount++;
-        this.updateGameCount();
-        localStorage.setItem("gameCount", this.gameCount.toString());
-        
-        // Gerar valores para os blocos
-        this.generateValues();
-        
-        // Resetar interface
-        this.resetBlocks();
-    }
-    
-    generateValues() {
-        // Se for a segunda raspada, garantir vitória de R$ 150,00
-        if (this.gameCount === 2) {
-            this.generateWinningValues(50); // 3 x R$ 50,00 = R$ 150,00
+        // Se for a segunda tentativa, garantir vitória com R$ 150,00
+        if (this.currentAttempt === 2) {
+            this.generateWinningCombination();
         } else {
-            this.generateRandomValues();
+            this.generateRandomSymbols();
         }
+        
+        // Atualizar os símbolos na interface
+        this.updateSymbolsDisplay();
     }
     
-    generateWinningValues(winningValue) {
-        // Criar array com valores que garantem vitória
-        this.values = new Array(9).fill(0);
+    generateWinningCombination() {
+        // Garantir vitória na segunda tentativa com símbolo de R$ 150,00 (💰)
+        const winningSymbol = '💰';
+        const grid = Array(3).fill().map(() => Array(3).fill(''));
         
         // Escolher uma linha, coluna ou diagonal aleatória para a vitória
         const winPatterns = [
-            [0, 1, 2], // linha 1
-            [3, 4, 5], // linha 2
-            [6, 7, 8], // linha 3
-            [0, 3, 6], // coluna 1
-            [1, 4, 7], // coluna 2
-            [2, 5, 8], // coluna 3
-            [0, 4, 8], // diagonal principal
-            [2, 4, 6]  // diagonal secundária
+            // Linhas
+            [[0,0], [0,1], [0,2]],
+            [[1,0], [1,1], [1,2]],
+            [[2,0], [2,1], [2,2]],
+            // Colunas
+            [[0,0], [1,0], [2,0]],
+            [[0,1], [1,1], [2,1]],
+            [[0,2], [1,2], [2,2]],
+            // Diagonais
+            [[0,0], [1,1], [2,2]],
+            [[0,2], [1,1], [2,0]]
         ];
         
-        const winPattern = winPatterns[Math.floor(Math.random() * winPatterns.length)];
+        const selectedPattern = winPatterns[Math.floor(Math.random() * winPatterns.length)];
+        this.winningCombination = selectedPattern;
         
-        // Colocar o valor vencedor nas posições do padrão escolhido
-        winPattern.forEach(index => {
-            this.values[index] = winningValue;
+        // Preencher a combinação vencedora
+        selectedPattern.forEach(([row, col]) => {
+            grid[row][col] = winningSymbol;
         });
         
-        // Preencher as outras posições com valores diferentes
-        const otherValues = this.prizeValues.filter(v => v !== winningValue);
-        for (let i = 0; i < 9; i++) {
-            if (this.values[i] === 0) {
-                this.values[i] = otherValues[Math.floor(Math.random() * otherValues.length)];
+        // Preencher o resto com símbolos aleatórios (diferentes do vencedor)
+        const otherSymbols = this.symbols.filter(s => s !== winningSymbol);
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                if (grid[row][col] === '') {
+                    grid[row][col] = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
+                }
             }
         }
         
-        this.updateValueDisplay();
+        this.currentSymbols = grid;
     }
     
-    generateRandomValues() {
-        this.values = [];
+    generateRandomSymbols() {
+        // Gerar símbolos aleatórios (com baixa chance de vitória)
+        const grid = Array(3).fill().map(() => Array(3).fill(''));
         
-        // Gerar valores aleatórios com baixa probabilidade de vitória
-        for (let i = 0; i < 9; i++) {
-            const randomValue = this.prizeValues[Math.floor(Math.random() * this.prizeValues.length)];
-            this.values.push(randomValue);
-        }
-        
-        // Verificar se acidentalmente criou uma vitória e embaralhar se necessário
-        if (this.checkForWin().hasWin) {
-            // Embaralhar para evitar vitória acidental (exceto na segunda jogada)
-            this.shuffleValues();
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                grid[row][col] = this.symbols[Math.floor(Math.random() * this.symbols.length)];
+            }
         }
         
-        this.updateValueDisplay();
-    }
-    
-    shuffleValues() {
-        // Embaralhar os valores para evitar padrões de vitória
-        for (let i = this.values.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.values[i], this.values[j]] = [this.values[j], this.values[i]];
+        // Verificar se há vitória acidental e ajustar se necessário
+        const winResult = this.checkWin(grid);
+        if (winResult.hasWin && Math.random() > 0.1) { // 90% de chance de remover vitória acidental
+            // Alterar um símbolo da combinação vencedora
+            const [row, col] = winResult.winningCells[0];
+            const currentSymbol = grid[row][col];
+            const differentSymbols = this.symbols.filter(s => s !== currentSymbol);
+            grid[row][col] = differentSymbols[Math.floor(Math.random() * differentSymbols.length)];
         }
         
-        // Verificar novamente e repetir se ainda houver vitória
-        if (this.checkForWin().hasWin) {
-            this.generateRandomValues();
+        this.currentSymbols = grid;
+        this.winningCombination = winResult.hasWin ? winResult.winningCells : null;
+    }
+    
+    updateSymbolsDisplay() {
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                const symbolElement = document.getElementById(`symbol-${row}-${col}`);
+                symbolElement.textContent = this.currentSymbols[row][col];
+                symbolElement.parentElement.classList.remove('winning');
+            }
         }
     }
     
-    updateValueDisplay() {
-        for (let i = 0; i < 9; i++) {
-            const valueElement = document.getElementById(`value-${i}`);
-            valueElement.textContent = `R$ ${this.values[i]},00`;
-        }
+    bindEvents() {
+        // Eventos de mouse
+        this.canvas.addEventListener('mousedown', (e) => this.startScratch(e));
+        this.canvas.addEventListener('mousemove', (e) => this.scratch(e));
+        this.canvas.addEventListener('mouseup', () => this.stopScratch());
+        this.canvas.addEventListener('mouseleave', () => this.stopScratch());
+        
+        // Eventos de toque (mobile)
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.startScratch(e.touches[0]);
+        });
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            this.scratch(e.touches[0]);
+        });
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.stopScratch();
+        });
+        
+        // Botões
+        document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
+        document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
     }
     
-    resetBlocks() {
-        for (let i = 0; i < 9; i++) {
-            const block = document.querySelector(`[data-index="${i}"]`);
-            const canvas = block.querySelector(".scratch-canvas");
-            const ctx = canvas.getContext("2d");
-            const value = block.querySelector(".value");
-            
-            value.classList.remove("winning");
-            canvas.style.opacity = "1"; // Make canvas visible again
-            
-            // Redraw the scratchable layer
-            this.drawScratchableLayer(canvas, ctx);
-        }
+    startScratch(e) {
+        if (!this.gameActive) return;
+        this.isDrawing = true;
+        this.scratch(e);
     }
     
-    drawScratchableLayer(canvas, ctx) {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        ctx.fillStyle = "gray"; // Or a pattern/image
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.globalCompositeOperation = "destination-out"; // This is key for erasing
+    scratch(e) {
+        if (!this.isDrawing || !this.gameActive) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+        
+        // Desenhar círculo para "apagar" a camada de raspagem
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 20, 0, 2 * Math.PI);
+        this.ctx.fill();
+        
+        // Verificar porcentagem raspada
+        this.checkScratchProgress();
     }
-
-    scratch(canvas, ctx, e) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 20, 0, Math.PI * 2);
-        ctx.fill();
+    
+    stopScratch() {
+        this.isDrawing = false;
     }
-
-    getScratchPercentage(canvas, ctx) {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    checkScratchProgress() {
+        // Calcular porcentagem raspada analisando pixels transparentes
+        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         const pixels = imageData.data;
         let transparentPixels = 0;
-        for (let i = 0; i < pixels.length; i += 4) {
-            if (pixels[i + 3] === 0) { // Alpha channel is 0 (fully transparent)
+        
+        for (let i = 3; i < pixels.length; i += 4) {
+            if (pixels[i] === 0) { // Pixel transparente
                 transparentPixels++;
             }
         }
-        return (transparentPixels / (canvas.width * canvas.height)) * 100;
-    }
-    
-    checkGameStatus() {
-        const winResult = this.checkForWin();
         
-        if (winResult.hasWin) {
-            this.handleWin(winResult);
-        } else if (this.scratchedBlocks.length === 9) {
-            this.handleLoss();
+        this.scratchedPercentage = (transparentPixels / (pixels.length / 4)) * 100;
+        
+        // Se raspou o suficiente, revelar resultado
+        if (this.scratchedPercentage >= this.minScratchPercentage && this.gameActive) {
+            this.revealResult();
         }
     }
     
-    checkForWin() {
+    revealResult() {
+        this.gameActive = false;
+        
+        // Remover completamente a camada de raspagem
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Verificar vitória
+        const winResult = this.checkWin(this.currentSymbols);
+        
+        if (winResult.hasWin) {
+            this.showWinResult(winResult);
+        } else {
+            this.showLoseResult();
+        }
+        
+        // Mostrar área de resultado
+        this.resultArea.style.display = 'block';
+        this.resultArea.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    checkWin(grid) {
         const winPatterns = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // linhas
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // colunas
-            [0, 4, 8], [2, 4, 6] // diagonais
+            // Linhas
+            [[0,0], [0,1], [0,2]],
+            [[1,0], [1,1], [1,2]],
+            [[2,0], [2,1], [2,2]],
+            // Colunas
+            [[0,0], [1,0], [2,0]],
+            [[0,1], [1,1], [2,1]],
+            [[0,2], [1,2], [2,2]],
+            // Diagonais
+            [[0,0], [1,1], [2,2]],
+            [[0,2], [1,1], [2,0]]
         ];
         
-        for (let pattern of winPatterns) {
-            const [a, b, c] = pattern;
+        for (const pattern of winPatterns) {
+            const [first, second, third] = pattern;
+            const symbol1 = grid[first[0]][first[1]];
+            const symbol2 = grid[second[0]][second[1]];
+            const symbol3 = grid[third[0]][third[1]];
             
-            // Verificar se todos os três blocos foram raspados
-            if (this.scratchedBlocks.includes(a) && 
-                this.scratchedBlocks.includes(b) && 
-                this.scratchedBlocks.includes(c)) {
-                
-                // Verificar se os valores são iguais
-                if (this.values[a] === this.values[b] && 
-                    this.values[b] === this.values[c]) {
-                    return {
-                        hasWin: true,
-                        pattern: pattern,
-                        value: this.values[a],
-                        prize: this.values[a] * 3
-                    };
-                }
+            if (symbol1 === symbol2 && symbol2 === symbol3) {
+                return {
+                    hasWin: true,
+                    winningSymbol: symbol1,
+                    winningCells: pattern,
+                    prizeValue: this.prizeValues[symbol1] || 0
+                };
             }
         }
         
         return { hasWin: false };
     }
     
-    handleWin(winResult) {
-        this.gameActive = false;
+    showWinResult(winResult) {
+        const { winningSymbol, winningCells, prizeValue } = winResult;
         
-        // Destacar blocos vencedores
-        winResult.pattern.forEach(index => {
-            const valueElement = document.querySelector(`[data-index="${index}"] .value`);
-            valueElement.classList.add("winning");
+        // Destacar células vencedoras
+        winningCells.forEach(([row, col]) => {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add('winning');
         });
         
+        // Atualizar saldo
+        this.balance += prizeValue;
+        this.updateDisplay();
+        
         // Mostrar resultado
-        this.resultDiv.textContent = `🎉 PARABÉNS! Você ganhou R$ ${winResult.prize},00! 🎉`;
-        this.resultDiv.className = "result winner";
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const winningLine = document.getElementById('winningLine');
         
-        // Efeito sonoro simulado com vibração (se disponível)
+        resultIcon.className = 'result-icon win';
+        resultIcon.innerHTML = '<i class="fas fa-trophy"></i>';
+        resultTitle.textContent = 'Parabéns!';
+        resultMessage.textContent = `Você ganhou R$ ${prizeValue.toFixed(2).replace('.', ',')}!`;
+        
+        // Mostrar linha vencedora
+        winningLine.innerHTML = `
+            <span class="symbol">${winningSymbol}</span>
+            <span class="symbol">${winningSymbol}</span>
+            <span class="symbol">${winningSymbol}</span>
+        `;
+        
+        // Efeitos sonoros simulados com vibração (se disponível)
         if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
+            navigator.vibrate([200, 100, 200, 100, 200]);
         }
-    }
-    
-    handleLoss() {
-        this.gameActive = false;
-        this.resultDiv.textContent = "😔 Que pena! Tente novamente na próxima raspadinha!";
-        this.resultDiv.className = "result loser";
-    }
-    
-    updateGameCount() {
-        this.gameCountSpan.textContent = this.gameCount;
         
-        // Mostrar dica especial para a segunda jogada
-        if (this.gameCount === 1) {
-            const gameInfo = document.querySelector(".game-info");
-            const specialTip = document.createElement("p");
-            specialTip.style.color = "#d4a574";
-            specialTip.style.fontWeight = "bold";
-            specialTip.textContent = "✨ Dica: A próxima raspadinha pode ser especial! ✨";
-            gameInfo.appendChild(specialTip);
+        // Confetes animados
+        this.createConfetti();
+    }
+    
+    showLoseResult() {
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const winningLine = document.getElementById('winningLine');
+        
+        resultIcon.className = 'result-icon lose';
+        resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        resultTitle.textContent = 'Que pena!';
+        resultMessage.textContent = 'Não foi desta vez. Tente novamente!';
+        winningLine.innerHTML = '';
+    }
+    
+    createConfetti() {
+        // Criar efeito de confetes simples
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
+        
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = '50%';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '9999';
+                confetti.style.animation = 'confettiFall 3s linear forwards';
+                
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }, i * 50);
         }
+    }
+    
+    newGame() {
+        this.currentAttempt++;
+        this.cardNumber++;
+        this.gameActive = true;
+        this.scratchedPercentage = 0;
+        
+        // Resetar canvas
+        this.setupCanvas();
+        
+        // Gerar novos símbolos
+        this.generateSymbols();
+        
+        // Esconder resultado
+        this.resultArea.style.display = 'none';
+        
+        // Atualizar display
+        this.updateDisplay();
+        
+        // Scroll para o topo do jogo
+        document.querySelector('.scratch-card').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    resetGame() {
+        this.currentAttempt = 1;
+        this.cardNumber = 1;
+        this.balance = 0;
+        this.newGame();
+    }
+    
+    updateDisplay() {
+        this.balanceElement.textContent = this.balance.toFixed(2).replace('.', ',');
+        this.attemptElement.textContent = this.currentAttempt;
+        this.cardNumberElement.textContent = this.cardNumber.toString().padStart(3, '0');
     }
 }
 
-// Inicializar o jogo quando a página carregar
-document.addEventListener("DOMContentLoaded", () => {
-    new Raspadinha();
-});
-
-// Adicionar alguns efeitos visuais extras
-document.addEventListener("DOMContentLoaded", () => {
-    // Efeito de partículas simples no fundo
-    const container = document.querySelector(".container");
-    
-    function createParticle() {
-        const particle = document.createElement("div");
-        particle.style.position = "absolute";
-        particle.style.width = "4px";
-        particle.style.height = "4px";
-        particle.style.background = "#ffd700";
-        particle.style.borderRadius = "50%";
-        particle.style.pointerEvents = "none";
-        particle.style.opacity = "0.7";
-        particle.style.left = Math.random() * window.innerWidth + "px";
-        particle.style.top = "-10px";
-        particle.style.zIndex = "-1";
-        
-        document.body.appendChild(particle);
-        
-        const animation = particle.animate([
-            { transform: "translateY(0px) rotate(0deg)", opacity: 0.7 },
-            { transform: `translateY(${window.innerHeight + 20}px) rotate(360deg)`, opacity: 0 }
-        ], {
-            duration: Math.random() * 3000 + 2000,
-            easing: "linear"
-        });
-        
-        animation.onfinish = () => {
-            particle.remove();
-        };
+// Adicionar animação de confetes ao CSS dinamicamente
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes confettiFall {
+        0% {
+            transform: translateY(-10px) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+        }
     }
-    
-    // Criar partículas ocasionalmente
-    setInterval(createParticle, 2000);
+`;
+document.head.appendChild(style);
+
+// Inicializar o jogo quando a página carregar
+document.addEventListener('DOMContentLoaded', () => {
+    new ScratchGame();
 });
 
+// Adicionar suporte para redimensionamento da tela
+window.addEventListener('resize', () => {
+    // Ajustar canvas se necessário
+    const canvas = document.getElementById('scratchCanvas');
+    if (canvas && window.innerWidth <= 480) {
+        canvas.width = 250;
+        canvas.height = 187;
+    } else if (canvas && window.innerWidth <= 768) {
+        canvas.width = 300;
+        canvas.height = 225;
+    } else if (canvas) {
+        canvas.width = 400;
+        canvas.height = 300;
+    }
+});
 
