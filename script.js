@@ -14,7 +14,7 @@ class ScratchGame {
         this.cardNumber = 1;
         this.gameActive = true;
         this.scratchedPercentage = 0;
-        this.minScratchPercentage = 30; // Porcentagem mínima para revelar resultado
+        this.minScratchPercentage = 90; // Porcentagem mínima para revelar resultado
         
         // Símbolos disponíveis e seus valores de prêmio
         this.symbols = ['💎', '🍀', '⭐', '💰', '🎯', '🔥', '⚡', '🎲', '🎊'];
@@ -151,7 +151,11 @@ class ScratchGame {
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 3; col++) {
                 const symbolElement = document.getElementById(`symbol-${row}-${col}`);
-                symbolElement.textContent = this.currentSymbols[row][col];
+                const symbol = this.currentSymbols[row][col];
+                const prizeValue = this.prizeValues[symbol];
+                
+                // Exibir o valor do prêmio ao invés do símbolo
+                symbolElement.textContent = `R$ ${prizeValue.toFixed(2).replace('.', ',')}`;
                 symbolElement.parentElement.classList.remove('winning');
             }
         }
@@ -307,11 +311,12 @@ class ScratchGame {
         resultTitle.textContent = 'Parabéns!';
         resultMessage.textContent = `Você ganhou R$ ${prizeValue.toFixed(2).replace('.', ',')}!`;
         
-        // Mostrar linha vencedora
+        // Mostrar linha vencedora com valores ao invés de símbolos
+        const winningValue = `R$ ${prizeValue.toFixed(2).replace('.', ',')}`;
         winningLine.innerHTML = `
-            <span class="symbol">${winningSymbol}</span>
-            <span class="symbol">${winningSymbol}</span>
-            <span class="symbol">${winningSymbol}</span>
+            <span class="symbol">${winningValue}</span>
+            <span class="symbol">${winningValue}</span>
+            <span class="symbol">${winningValue}</span>
         `;
         
         // Efeitos sonoros simulados com vibração (se disponível)
