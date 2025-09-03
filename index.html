@@ -3,500 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RaspadinhaWin - Cassino Online Premium</title>
-    <link rel="stylesheet" href="raspadinha.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Raspadinha Online</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Partículas de fundo -->
-    <div class="particles-bg" id="particles-bg"></div>
+    <div class="container">
+        <h1>🎰 Raspadinha Online 🎰</h1>
+        <div class="game-info">
+            <p>Clique nos blocos para raspar e descobrir os valores!</p>
+            <p>Ganhe alinhando 3 valores iguais na horizontal, vertical ou diagonal!</p>
+        </div>
+        
+        <div class="scratch-card">
+            <div class="grid" id="grid">
+                <div class="block" data-index="0">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-0"></div>
+                </div>
+                <div class="block" data-index="1">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-1"></div>
+                </div>
+                <div class="block" data-index="2">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-2"></div>
+                </div>
+                <div class="block" data-index="3">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-3"></div>
+                </div>
+                <div class="block" data-index="4">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-4"></div>
+                </div>
+                <div class="block" data-index="5">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-5"></div>
+                </div>
+                <div class="block" data-index="6">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-6"></div>
+                </div>
+                <div class="block" data-index="7">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-7"></div>
+                </div>
+                <div class="block" data-index="8">
+                    <div class="cover">?</div>
+                    <div class="value" id="value-8"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-controls">
+            <button id="newGame" class="btn">Nova Raspadinha</button>
+            <div class="game-counter">
+                <span>Raspadas jogadas: <span id="gameCount">0</span></span>
+            </div>
+        </div>
+        
+        <div id="result" class="result"></div>
+        
+        <div class="prize-info">
+            <h3>💰 Prêmios Possíveis:</h3>
+            <ul>
+                <li>3 x R$ 10,00 = R$ 30,00</li>
+                <li>3 x R$ 25,00 = R$ 75,00</li>
+                <li>3 x R$ 50,00 = R$ 150,00</li>
+                <li>3 x R$ 100,00 = R$ 300,00</li>
+            </ul>
+        </div>
+    </div>
     
-    <!-- Header Premium -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-crown"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>RaspadinhaWin</h1>
-                    <span class="logo-subtitle">PREMIUM</span>
-                </div>
-            </div>
-            
-            <nav class="nav-menu">
-                <a href="#home" class="nav-link active">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="#raspadinha" class="nav-link">
-                    <i class="fas fa-th"></i>
-                    <span>Raspadinha</span>
-                </a>
-                <a href="#depositar" class="nav-link">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Depositar</span>
-                </a>
-                <a href="#historico" class="nav-link">
-                    <i class="fas fa-history"></i>
-                    <span>Histórico</span>
-                </a>
-            </nav>
-            
-            <div class="user-info">
-                <div class="saldo-display">
-                    <div class="saldo-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="saldo-info">
-                        <span class="saldo-label">Saldo</span>
-                        <span class="saldo-valor">R$ <span id="saldo-atual">0,00</span></span>
-                    </div>
-                </div>
-                <button class="btn-sacar" id="btn-sacar">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <span>Sacar</span>
-                </button>
-            </div>
-            
-            <div class="mobile-menu-toggle" id="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Tela de Cadastro Premium -->
-    <div class="cadastro-overlay hidden" id="cadastro-overlay">
-        <div class="cadastro-backdrop"></div>
-        <div class="cadastro-container">
-            <div class="cadastro-header">
-                <div class="cadastro-icon">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <h2>Criar Conta Premium</h2>
-                <p>Receba 3 raspadas grátis e até R$ 150,00 de bônus!</p>
-            </div>
-            
-            <form class="cadastro-form" id="cadastro-form">
-                <div class="input-group">
-                    <div class="input-icon">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <input type="text" id="nome" placeholder="Nome completo" required>
-                    <div class="input-border"></div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="input-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <input type="email" id="email" placeholder="E-mail" required>
-                    <div class="input-border"></div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="input-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <input type="password" id="senha" placeholder="Senha" required>
-                    <div class="input-border"></div>
-                </div>
-                
-                <button type="submit" class="btn-cadastro">
-                    <span class="btn-text">Criar Conta</span>
-                    <div class="btn-shine"></div>
-                </button>
-            </form>
-            
-            <div class="cadastro-benefits">
-                <div class="benefit-item">
-                    <i class="fas fa-gift"></i>
-                    <span>3 Raspadas Grátis</span>
-                </div>
-                <div class="benefit-item">
-                    <i class="fas fa-dollar-sign"></i>
-                    <span>Até R$ 150,00</span>
-                </div>
-                <div class="benefit-item">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>100% Seguro</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Resultado -->
-    <div class="modal-overlay hidden" id="resultado-modal">
-        <div class="modal-backdrop"></div>
-        <div class="modal-container resultado-modal">
-            <div class="modal-header">
-                <div class="modal-icon" id="resultado-icon">
-                    <i class="fas fa-trophy"></i>
-                </div>
-                <h2 id="resultado-titulo">Parabéns!</h2>
-                <p id="resultado-descricao">Você ganhou um prêmio!</p>
-            </div>
-            
-            <div class="modal-content">
-                <div class="premio-display" id="premio-display">
-                    <div class="premio-valor" id="premio-valor">R$ 0,00</div>
-                    <div class="premio-label">Prêmio Ganho</div>
-                </div>
-                
-                <div class="saldo-atualizado">
-                    <div class="saldo-info">
-                        <span class="saldo-label">Novo Saldo:</span>
-                        <span class="saldo-valor">R$ <span id="novo-saldo">0,00</span></span>
-                    </div>
-                </div>
-                
-                <div class="raspadas-restantes" id="raspadas-restantes-modal">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span>Raspadas restantes: <strong id="raspadas-restantes-count">0</strong></span>
-                </div>
-            </div>
-            
-            <button class="btn-continuar" id="btn-continuar">
-                <span class="btn-text">Continuar</span>
-                <i class="fas fa-arrow-right"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Conteúdo Principal -->
-    <main class="main-content">
-        <!-- Seção Hero Premium -->
-        <section id="home" class="home-section">
-            <div class="hero-container">
-                <div class="hero-content">
-                    <div class="hero-badge">
-                        <i class="fas fa-star"></i>
-                        <span>CASSINO PREMIUM</span>
-                    </div>
-                    <h1 class="hero-title">
-                        <span class="title-line-1">Bem-vindo ao</span>
-                        <span class="title-line-2">RaspadinhaWin</span>
-                        <span class="title-accent">Premium</span>
-                    </h1>
-                    <p class="hero-subtitle">
-                        Experimente a emoção das raspadinhas online com tecnologia de ponta,
-                        gráficos impressionantes e prêmios reais que vão te surpreender!
-                    </p>
-                    
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <div class="stat-number">R$ 2.5M+</div>
-                            <div class="stat-label">Prêmios Pagos</div>
-                        </div>
-                        <div class
-
-
-="stat-item">
-                            <div class="stat-number">50K+</div>
-                            <div class="stat-label">Jogadores Ativos</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number">99.8%</div>
-                            <div class="stat-label">Taxa de Pagamento</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="hero-visual">
-                    <div class="floating-elements">
-                        <div class="floating-coin coin-1">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="floating-coin coin-2">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <div class="floating-coin coin-3">
-                            <i class="fas fa-gem"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Bloco de Raspadas Grátis Premium -->
-            <div class="raspadas-gratis-section" id="raspadas-gratis-container">
-                <div class="mesa-card mesa-raspadas-gratis" id="raspadas-gratis-info">
-                    <div class="mesa-glow"></div>
-                    <div class="mesa-header">
-                        <div class="mesa-tier">
-                            <i class="fas fa-gift"></i>
-                            <span>GRÁTIS</span>
-                        </div>
-                        <h3 id="raspadas-title">3 Raspadas Grátis</h3>
-                        <div class="mesa-subtitle" id="raspadas-subtitle">Cadastre-se e ganhe até R$ 150,00!</div>
-                    </div>
-                    
-                    <div class="mesa-raspadinha-display" id="raspadinha-gratis-container">
-                        <div class="raspadinha-premium-wrapper">
-                            <div class="raspadinha-grid" id="raspadinha-grid">
-                                <!-- Os blocos serão gerados dinamicamente pelo JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mesa-premios" id="raspadas-premios-info">
-                        <div class="premios-header">
-                            <i class="fas fa-trophy"></i>
-                            <span>Prêmios Possíveis</span>
-                        </div>
-                        <div class="premios-list">
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 10,00</div>
-                                <div class="premio-chance">Comum</div>
-                            </div>
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 50,00</div>
-                                <div class="premio-chance">Raro</div>
-                            </div>
-                            <div class="premio-item premio-destaque">
-                                <div class="premio-valor">R$ 150,00</div>
-                                <div class="premio-chance">Épico</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="botoes-controle">
-                        <button class="btn-jogar btn-raspadas-gratis" id="btn-raspar">
-                            <div class="btn-bg"></div>
-                            <span class="btn-text">NOVA RASPADINHA</span>
-                            <i class="fas fa-ticket-alt"></i>
-                        </button>
-                        
-                        <button class="btn-jogar btn-revelar hidden" id="btn-revelar">
-                            <div class="btn-bg"></div>
-                            <span class="btn-text">REVELAR TUDO</span>
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-
-                    <div class="raspadas-info-premium" id="raspadas-info" style="display: none;">
-                        <div class="raspadas-counter">
-                            <i class="fas fa-ticket-alt"></i>
-                            <span>Raspadas restantes: <strong id="raspadas-count">3</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Seção Mesas Premium -->
-        <section id="mesas" class="mesas-section">
-            <div class="section-header">
-                <div class="section-badge">
-                    <i class="fas fa-star"></i>
-                    <span>MESAS PREMIUM</span>
-                </div>
-                <h2>Mesas com Apostas</h2>
-                <p>Escolha sua mesa e teste sua sorte com prêmios incríveis</p>
-            </div>
-            
-            <div class="mesas-grid">
-                <div class="mesa-card mesa-bronze" data-valor="5">
-                    <div class="mesa-glow"></div>
-                    <div class="mesa-header">
-                        <div class="mesa-tier">
-                            <i class="fas fa-medal"></i>
-                            <span>BRONZE</span>
-                        </div>
-                        <h3>Mesa R$ 5,00</h3>
-                        <div class="mesa-subtitle">Entrada Básica</div>
-                    </div>
-                    
-                    <div class="mesa-raspadinha-display">
-                        <div class="raspadinha-mini">
-                            <div class="mini-grid"></div>
-                            <div class="mini-center">
-                                <i class="fas fa-coins"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mesa-premios">
-                        <div class="premios-header">
-                            <i class="fas fa-trophy"></i>
-                            <span>Prêmios Possíveis</span>
-                        </div>
-                        <div class="premios-list">
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 10,00</div>
-                                <div class="premio-chance">40%</div>
-                            </div>
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 25,00</div>
-                                <div class="premio-chance">25%</div>
-                            </div>
-                            <div class="premio-item premio-destaque">
-                                <div class="premio-valor">R$ 50,00</div>
-                                <div class="premio-chance">15%</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-jogar">
-                        <div class="btn-bg"></div>
-                        <span class="btn-text">JOGAR</span>
-                        <i class="fas fa-play"></i>
-                    </button>
-                </div>
-                
-                <div class="mesa-card mesa-prata" data-valor="10">
-                    <div class="mesa-glow"></div>
-                    <div class="mesa-header">
-                        <div class="mesa-tier">
-                            <i class="fas fa-medal"></i>
-                            <span>PRATA</span>
-                        </div>
-                        <h3>Mesa R$ 10,00</h3>
-                        <div class="mesa-subtitle">Prêmios Médios</div>
-                    </div>
-                    
-                    <div class="mesa-raspadinha-display">
-                        <div class="raspadinha-mini">
-                            <div class="mini-grid"></div>
-                            <div class="mini-center">
-                                <i class="fas fa-gem"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mesa-premios">
-                        <div class="premios-header">
-                            <i class="fas fa-trophy"></i>
-                            <span>Prêmios Possíveis</span>
-                        </div>
-                        <div class="premios-list">
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 20,00</div>
-                                <div class="premio-chance">35%</div>
-                            </div>
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 50,00</div>
-                                <div class="premio-chance">20%</div>
-                            </div>
-                            <div class="premio-item premio-destaque">
-                                <div class="premio-valor">R$ 100,00</div>
-                                <div class="premio-chance">10%</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-jogar">
-                        <div class="btn-bg"></div>
-                        <span class="btn-text">JOGAR</span>
-                        <i class="fas fa-play"></i>
-                    </button>
-                </div>
-                
-                <div class="mesa-card mesa-ouro" data-valor="25">
-                    <div class="mesa-glow"></div>
-                    <div class="mesa-header">
-                        <div class="mesa-tier">
-                            <i class="fas fa-crown"></i>
-                            <span>OURO</span>
-                        </div>
-                        <h3>Mesa R$ 25,00</h3>
-                        <div class="mesa-subtitle">Prêmios Altos</div>
-                    </div>
-                    
-                    <div class="mesa-raspadinha-display">
-                        <div class="raspadinha-mini">
-                            <div class="mini-grid"></div>
-                            <div class="mini-center">
-                                <i class="fas fa-crown"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mesa-premios">
-                        <div class="premios-header">
-                            <i class="fas fa-trophy"></i>
-                            <span>Prêmios Possíveis</span>
-                        </div>
-                        <div class="premios-list">
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 50,00</div>
-                                <div class="premio-chance">30%</div>
-                            </div>
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 125,00</div>
-                                <div class="premio-chance">15%</div>
-                            </div>
-                            <div class="premio-item premio-destaque">
-                                <div class="premio-valor">R$ 250,00</div>
-                                <div class="premio-chance">8%</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-jogar">
-                        <div class="btn-bg"></div>
-                        <span class="btn-text">JOGAR</span>
-                        <i class="fas fa-play"></i>
-                    </button>
-                </div>
-                
-                <div class="mesa-card mesa-diamante" data-valor="50">
-                    <div class="mesa-glow"></div>
-                    <div class="mesa-header">
-                        <div class="mesa-tier">
-                            <i class="fas fa-diamond"></i>
-                            <span>DIAMANTE</span>
-                        </div>
-                        <h3>Mesa R$ 50,00</h3>
-                        <div class="mesa-subtitle">Prêmios Épicos</div>
-                    </div>
-                    
-                    <div class="mesa-raspadinha-display">
-                        <div class="raspadinha-mini">
-                            <div class="mini-grid"></div>
-                            <div class="mini-center">
-                                <i class="fas fa-diamond"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mesa-premios">
-                        <div class="premios-header">
-                            <i class="fas fa-trophy"></i>
-                            <span>Prêmios Possíveis</span>
-                        </div>
-                        <div class="premios-list">
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 100,00</div>
-                                <div class="premio-chance">25%</div>
-                            </div>
-                            <div class="premio-item">
-                                <div class="premio-valor">R$ 250,00</div>
-                                <div class="premio-chance">12%</div>
-                            </div>
-                            <div class="premio-item premio-destaque">
-                                <div class="premio-valor">R$ 500,00</div>
-                                <div class="premio-chance">5%</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-jogar">
-                        <div class="btn-bg"></div>
-                        <span class="btn-text">JOGAR</span>
-                        <i class="fas fa-play"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <script src="raspadinha.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
 
