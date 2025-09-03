@@ -220,7 +220,9 @@ body {
 }
 
 .symbol {
-    font-size: 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d5016;
     animation: symbolFloat 3s ease-in-out infinite;
 }
 
@@ -301,7 +303,7 @@ body {
 }
 
 .winning-line .symbol {
-    font-size: 2rem;
+    font-size: 1.5rem;
     animation: winPulse 1s infinite;
 }
 
@@ -499,10 +501,6 @@ body {
         gap: 15px;
     }
     
-    .scratch-card {
-        padding: 20px;
-    }
-    
     .scratch-area {
         width: 300px;
         height: 225px;
@@ -514,22 +512,7 @@ body {
     }
     
     .symbol {
-        font-size: 2rem;
-    }
-    
-    .controls {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .btn {
-        width: 100%;
-        max-width: 250px;
-        justify-content: center;
-    }
-    
-    .prizes {
-        grid-template-columns: 1fr;
+        font-size: 1rem;
     }
 }
 
@@ -545,19 +528,7 @@ body {
     }
     
     .symbol {
-        font-size: 1.5rem;
-    }
-    
-    .result-card {
-        padding: 25px;
-    }
-    
-    #resultTitle {
-        font-size: 2rem;
-    }
-    
-    #resultMessage {
-        font-size: 1.1rem;
+        font-size: 0.8rem;
     }
 }
 
