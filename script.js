@@ -1,13 +1,13 @@
 class Raspadinha {
     constructor() {
-        this.grid = document.getElementById('grid');
-        this.newGameBtn = document.getElementById('newGame');
-        this.resultDiv = document.getElementById('result');
-        this.gameCountSpan = document.getElementById('gameCount');
+        this.grid = document.getElementById("grid");
+        this.newGameBtn = document.getElementById("newGame");
+        this.resultDiv = document.getElementById("result");
+        this.gameCountSpan = document.getElementById("gameCount");
         
         this.values = [];
         this.scratchedBlocks = [];
-        this.gameCount = parseInt(localStorage.getItem('gameCount') || '0');
+        this.gameCount = parseInt(localStorage.getItem("gameCount") || "0");
         this.gameActive = true;
         
         this.prizeValues = [10, 25, 50, 100];
@@ -22,15 +22,22 @@ class Raspadinha {
     }
     
     setupEventListeners() {
-        this.newGameBtn.addEventListener('click', () => this.startNewGame());
+        this.newGameBtn.addEventListener("click", () => this.startNewGame());
         
         // Adicionar event listeners para cada bloco
         for (let i = 0; i < 9; i++) {
             const block = document.querySelector(`[data-index="${i}"]`);
-            const canvas = block.querySelector('.scratch-canvas');
-            const ctx = canvas.getContext('2d');
+            const canvas = block.querySelector(".scratch-canvas");
+            const ctx = canvas.getContext("2d");
 
             let isScratching = false;
+
+            // Set initial canvas size and drawing properties
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.fillStyle = "gray"; // Or a pattern/image
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = "destination-out"; // This is key for erasing
 
             const startScratch = (e) => {
                 if (!this.gameActive || this.scratchedBlocks.includes(i)) return;
@@ -49,40 +56,41 @@ class Raspadinha {
                 const scratchedPercentage = this.getScratchPercentage(canvas, ctx);
                 if (scratchedPercentage > 50 && !this.scratchedBlocks.includes(i)) { // Only mark as scratched if more than 50% is revealed
                     this.scratchedBlocks.push(i);
+                    canvas.style.opacity = "0"; // Make canvas transparent to reveal value
                     this.checkGameStatus();
                 }
             };
 
             // Mouse events
-            canvas.addEventListener('mousedown', startScratch);
-            canvas.addEventListener('mousemove', doScratch);
-            canvas.addEventListener('mouseup', endScratch);
-            canvas.addEventListener('mouseleave', endScratch);
+            canvas.addEventListener("mousedown", startScratch);
+            canvas.addEventListener("mousemove", doScratch);
+            canvas.addEventListener("mouseup", endScratch);
+            canvas.addEventListener("mouseleave", endScratch);
 
             // Touch events
-            canvas.addEventListener('touchstart', (e) => {
+            canvas.addEventListener("touchstart", (e) => {
                 e.preventDefault(); // Prevent scrolling
                 startScratch(e.touches[0]);
             });
-            canvas.addEventListener('touchmove', (e) => {
+            canvas.addEventListener("touchmove", (e) => {
                 e.preventDefault(); // Prevent scrolling
                 doScratch(e.touches[0]);
             });
-            canvas.addEventListener('touchend', endScratch);
-            canvas.addEventListener('touchcancel', endScratch);
+            canvas.addEventListener("touchend", endScratch);
+            canvas.addEventListener("touchcancel", endScratch);
         }
     }
     
     startNewGame() {
         this.gameActive = true;
         this.scratchedBlocks = [];
-        this.resultDiv.textContent = '';
-        this.resultDiv.className = 'result';
+        this.resultDiv.textContent = "";
+        this.resultDiv.className = "result";
         
         // Incrementar contador de jogos
         this.gameCount++;
         this.updateGameCount();
-        localStorage.setItem('gameCount', this.gameCount.toString());
+        localStorage.setItem("gameCount", this.gameCount.toString());
         
         // Gerar valores para os blocos
         this.generateValues();
@@ -175,11 +183,12 @@ class Raspadinha {
     resetBlocks() {
         for (let i = 0; i < 9; i++) {
             const block = document.querySelector(`[data-index="${i}"]`);
-            const canvas = block.querySelector('.scratch-canvas');
-            const ctx = canvas.getContext('2d');
-            const value = block.querySelector('.value');
+            const canvas = block.querySelector(".scratch-canvas");
+            const ctx = canvas.getContext("2d");
+            const value = block.querySelector(".value");
             
-            value.classList.remove('winning');
+            value.classList.remove("winning");
+            canvas.style.opacity = "1"; // Make canvas visible again
             
             // Redraw the scratchable layer
             this.drawScratchableLayer(canvas, ctx);
@@ -189,9 +198,9 @@ class Raspadinha {
     drawScratchableLayer(canvas, ctx) {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
-        ctx.fillStyle = 'gray'; // Or a pattern/image
+        ctx.fillStyle = "gray"; // Or a pattern/image
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.globalCompositeOperation = 'destination-out'; // This is key for erasing
+        ctx.globalCompositeOperation = "destination-out"; // This is key for erasing
     }
 
     scratch(canvas, ctx, e) {
@@ -263,12 +272,12 @@ class Raspadinha {
         // Destacar blocos vencedores
         winResult.pattern.forEach(index => {
             const valueElement = document.querySelector(`[data-index="${index}"] .value`);
-            valueElement.classList.add('winning');
+            valueElement.classList.add("winning");
         });
         
         // Mostrar resultado
         this.resultDiv.textContent = `🎉 PARABÉNS! Você ganhou R$ ${winResult.prize},00! 🎉`;
-        this.resultDiv.className = 'result winner';
+        this.resultDiv.className = "result winner";
         
         // Efeito sonoro simulado com vibração (se disponível)
         if (navigator.vibrate) {
@@ -278,8 +287,8 @@ class Raspadinha {
     
     handleLoss() {
         this.gameActive = false;
-        this.resultDiv.textContent = '😔 Que pena! Tente novamente na próxima raspadinha!';
-        this.resultDiv.className = 'result loser';
+        this.resultDiv.textContent = "😔 Que pena! Tente novamente na próxima raspadinha!";
+        this.resultDiv.className = "result loser";
     }
     
     updateGameCount() {
@@ -287,47 +296,47 @@ class Raspadinha {
         
         // Mostrar dica especial para a segunda jogada
         if (this.gameCount === 1) {
-            const gameInfo = document.querySelector('.game-info');
-            const specialTip = document.createElement('p');
-            specialTip.style.color = '#d4a574';
-            specialTip.style.fontWeight = 'bold';
-            specialTip.textContent = '✨ Dica: A próxima raspadinha pode ser especial! ✨';
+            const gameInfo = document.querySelector(".game-info");
+            const specialTip = document.createElement("p");
+            specialTip.style.color = "#d4a574";
+            specialTip.style.fontWeight = "bold";
+            specialTip.textContent = "✨ Dica: A próxima raspadinha pode ser especial! ✨";
             gameInfo.appendChild(specialTip);
         }
     }
 }
 
 // Inicializar o jogo quando a página carregar
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
     new Raspadinha();
 });
 
 // Adicionar alguns efeitos visuais extras
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
     // Efeito de partículas simples no fundo
-    const container = document.querySelector('.container');
+    const container = document.querySelector(".container");
     
     function createParticle() {
-        const particle = document.createElement('div');
-        particle.style.position = 'absolute';
-        particle.style.width = '4px';
-        particle.style.height = '4px';
-        particle.style.background = '#ffd700';
-        particle.style.borderRadius = '50%';
-        particle.style.pointerEvents = 'none';
-        particle.style.opacity = '0.7';
-        particle.style.left = Math.random() * window.innerWidth + 'px';
-        particle.style.top = '-10px';
-        particle.style.zIndex = '-1';
+        const particle = document.createElement("div");
+        particle.style.position = "absolute";
+        particle.style.width = "4px";
+        particle.style.height = "4px";
+        particle.style.background = "#ffd700";
+        particle.style.borderRadius = "50%";
+        particle.style.pointerEvents = "none";
+        particle.style.opacity = "0.7";
+        particle.style.left = Math.random() * window.innerWidth + "px";
+        particle.style.top = "-10px";
+        particle.style.zIndex = "-1";
         
         document.body.appendChild(particle);
         
         const animation = particle.animate([
-            { transform: 'translateY(0px) rotate(0deg)', opacity: 0.7 },
+            { transform: "translateY(0px) rotate(0deg)", opacity: 0.7 },
             { transform: `translateY(${window.innerHeight + 20}px) rotate(360deg)`, opacity: 0 }
         ], {
             duration: Math.random() * 3000 + 2000,
-            easing: 'linear'
+            easing: "linear"
         });
         
         animation.onfinish = () => {
